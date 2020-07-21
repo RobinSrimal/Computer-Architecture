@@ -7,7 +7,9 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.pc = 0
 
     def load(self):
         """Load a program into memory."""
@@ -26,6 +28,7 @@ class CPU:
             0b00000001, # HLT
         ]
 
+
         for instruction in program:
             self.ram[address] = instruction
             address += 1
@@ -39,6 +42,28 @@ class CPU:
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
+
+    def ram_read(self, location):
+
+        if 0 <= location <= 255:
+
+            return self.ram[location]
+
+        else:
+
+            print("incorrect input")
+
+    def ram_write(self, location, value):
+
+        if 0 <= location <= 255:
+
+            self.ram[location] = value
+        
+        else:
+
+            print("incorrect input")
+
+
 
     def trace(self):
         """
@@ -62,4 +87,27 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+
+        running = True
+
+        while running:
+
+            if self.ram[self.pc] == 0b10000010:
+
+                self.reg[self.ram[self.pc + 1]] = self.ram[self.pc + 2]
+
+                self.pc += 2
+
+            if self.ram[self.pc] == 0b01000111:
+
+                print(self.reg[self.ram[self.pc + 1]])
+
+                self.pc += 1
+
+            if self.ram[self.pc] == 0b00000001:
+
+                running = False
+
+                self.pc = -1
+
+            self.pc += 1
