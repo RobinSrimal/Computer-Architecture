@@ -9,9 +9,10 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0] * 256
         self.reg = [0] * 8
+        self.reg[7] = 0xF4
         self.pc = 0
 
-    def load(self, filename):
+    def load(self, program):
         """Load a program into memory."""
 
         # address = 0
@@ -98,22 +99,56 @@ class CPU:
 
         while running:
 
+            
+            # write to registry
             if self.ram[self.pc] == 0b10000010:
 
                 self.reg[self.ram[self.pc + 1]] = self.ram[self.pc + 2]
 
-                self.pc += 2
+                self.pc += 3
+                
 
+
+            # print from registry
             if self.ram[self.pc] == 0b01000111:
 
                 print(self.reg[self.ram[self.pc + 1]])
 
-                self.pc += 1
+                self.pc += 2
 
+            # halt
             if self.ram[self.pc] == 0b00000001:
 
                 running = False
 
-                self.pc = -1
+                self.pc = 0
 
-            self.pc += 1
+
+            # multiply
+            if self.ram[self.pc] == 0b10100010:
+
+                self.reg[self.ram[self.pc + 1]] *= self.reg[self.ram[self.pc + 2]]
+
+                self.pc += 3
+
+            # push on stack
+            if self.ram[self.pc] == 0b01000101:
+
+                self.reg[7] -= 1
+                self.ram[self.reg[7]] = self.reg[self.ram[self.pc +1]]
+
+                self.pc += 2
+                
+
+            # pop from stack
+            if self.ram[self.pc] == 0b01000110:
+
+                self.reg[self.ram[self.pc + 1]] = self.ram[self.reg[7]]
+
+                self.reg[7] +=  1
+                self.pc += 2
+                
+            #print(self.pc)
+            #self.pc += 1
+            #print(self.pc)
+

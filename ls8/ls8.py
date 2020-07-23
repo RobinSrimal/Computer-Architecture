@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """Main."""
-
+import re
 import sys
 from cpu import *
 
