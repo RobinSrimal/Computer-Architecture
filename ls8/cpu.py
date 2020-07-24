@@ -9,30 +9,16 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0] * 256
         self.reg = [0] * 8
+        # stack pointer
         self.reg[7] = 0xF4
+        # flag registry 
+        self.flag = 0
+
         self.pc = 0
+        
 
     def load(self, program):
         """Load a program into memory."""
-
-        # address = 0
-
-        # For now, we've just hardcoded a program:
-
-        # program = [
-        #     # From print8.ls8
-        #     0b10000010, # LDI R0,8
-        #     0b00000000,
-        #     0b00001000,
-        #     0b01000111, # PRN R0
-        #     0b00000000,
-        #     0b00000001, # HLT
-        # ]
-
-
-        # for instruction in program:
-        #     self.ram[address] = instruction
-        #     address += 1
 
         address = 0
 
@@ -46,7 +32,45 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+
+        elif op == "SUB":
+
+            self.reg[reg_a] -= self.reg[reg_b]
+
+        elif op == "CMP":
+            
+            self.flag = ((self.reg[reg_a] < self.reg[reg_b]) << 2) | \
+                        ((self.reg[reg_a] > self.reg[reg_b]) << 1) | \
+                        ((self.reg[reg_a] == self.reg[reg_b]) << 0)
+
+        elif op == "AND":
+
+            self.reg[reg_a] &= self.reg[reg_b]
+
+        elif op == "OR":
+
+            self.reg[reg_a] |= self.reg[reg_b]
+
+        elif op == "XOR":
+
+            self.reg[reg_a] ^= self.reg[reg_b]
+
+        elif op == "NOT":
+
+            self.reg[reg_a] = ~self.reg[reg_a]
+
+        elif op == "SHL":
+
+            self.reg[reg_a] = self.reg[reg_a] << reg_b
+
+        elif op == "SHR":
+
+            self.reg[reg_a] = self.reg[reg_a] >> reg_b
+
+        elif op == "MOD":
+
+            self.reg[reg_a] %= self.reg[reg_b]
+
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -107,8 +131,6 @@ class CPU:
 
                 self.pc += 3
                 
-
-
             # print from registry
             if self.ram[self.pc] == 0b01000111:
 
@@ -119,9 +141,7 @@ class CPU:
             # halt
             if self.ram[self.pc] == 0b00000001:
 
-                running = False
-
-                self.pc = 0
+                sys.exit()
 
 
             # multiply
@@ -147,8 +167,97 @@ class CPU:
 
                 self.reg[7] +=  1
                 self.pc += 2
-                
-            #print(self.pc)
-            #self.pc += 1
-            #print(self.pc)
+
+            # compare registries
+            if self.ram[self.pc] == 0b10100111:
+
+                self.alu("CMP", self.ram[self.pc +1] , self.ram[self.pc + 2])
+                self.pc += 3
+            
+            # jump command
+            if self.ram[self.pc] == 0b0101010:
+
+                self.pc = self.reg[self.ram[self.pc + 1]]
+
+            # JEQ
+            if self.ram[self.pc] == 0b01010101:
+
+                if self.flag & 1:
+
+                    self.pc = self.reg[self.ram[self.pc +1]]
+
+                else:
+
+                    self.pc += 2
+
+            # JNE
+            if self.ram[self.pc] ==  0b01010110:
+
+                if not self.flag & 1:
+
+                    self.pc = self.reg[self.ram[self.pc +1]]
+
+                else:
+
+                    self.pc += 2
+
+
+            # SUB
+            if self.ram[self.pc] == 0b10100001:
+
+                self.alu("SUB", self.ram[self.pc +1] , self.ram[self.pc + 2])
+                self.pc += 3
+
+            # AND
+            if self.ram[self.pc] == 0b10101000:
+
+                self.alu("AND", self.ram[self.pc +1] , self.ram[self.pc + 2])
+                self.pc += 3
+
+
+            # OR
+            if self.ram[self.pc] == 0b10101010:
+
+                self.alu("OR", self.ram[self.pc +1] , self.ram[self.pc + 2])
+                self.pc += 3
+
+            #XOR
+            if self.ram[self.pc] == 0b10101011:
+
+                self.alu("XOR", self.ram[self.pc +1] , self.ram[self.pc + 2])
+                self.pc += 3
+
+            #NOT
+            if self.ram[self.pc] == 0b01101001:
+
+                self.alu("NOT", self.ram[self.pc +1] , None)
+                self.pc += 2
+
+            #SHL
+            if self.ram[self.pc] == 0b10101100:
+
+                self.alu("SHL", self.ram[self.pc +1] , self.ram[self.pc + 2])
+                self.pc += 3
+
+            #SHR
+            if self.ram[self.pc] == 0b10101101:
+
+                self.alu("SHR", self.ram[self.pc +1] , self.ram[self.pc + 2])
+                self.pc += 3
+
+            #MOD
+            if self.ram[self.pc] == 0b10100100:
+
+                self.alu("MOD", self.ram[self.pc +1] , self.ram[self.pc + 2])
+                self.pc += 3
+
+
+
+
+
+
+
+            
+
+            
 
